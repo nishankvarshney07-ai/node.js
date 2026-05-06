@@ -1,5 +1,7 @@
 const http= require('http');
 const url=require('url');
+const replaceTemplate = require('./modules/replaceTemplate');
+const tempCard= fs.readFileSync('./templates/template-card.html','utf-8');
 const fs = require('fs');
 const data=fs.readFileSync('./dev-data/data.json','utf-8');
 const dataObj=JSON.parse(data);
