@@ -1,17 +1,46 @@
-const http= require('http');
-const url=require('url');
+const http = require('http');
+const url =require('url');
+const fs= require('fs');
 const replaceTemplate = require('./modules/replaceTemplate');
-const tempCard= fs.readFileSync('./templates/template-card.html','utf-8');
-const fs = require('fs');
-const data=fs.readFileSync('./dev-data/data.json','utf-8');
+const tempCard=fs.readFileSync(`${__dirname}/templates/template-card.html`,'utf-8');   
+const tempOverview=fs.readFileSync(`${__dirname}/templates/template-overview.html`,'utf-8');
+const tempProduct=fs.readFileSync(`${__dirname}/templates/template-product.html`,'utf-8');
+const data = fs.readFileSync(`${__dirname}/dev-data/data.json`,'utf-8');
 const dataObj=JSON.parse(data);
-const overview=fs.readFileSync('./templates/overview.html','utf-8');
-const server = http.createServer((req,res)=>{
-    const {pathname} = url.parse(req.url,true);
-    if(pathname==='/' || pathname==="/overview"){
-         res.end(overview);
-    }else{
-        res.end('not found');
+const server = http.createServer((req, res) => {
+    const {pathname,query} =url.parse(req.url,true);
+    const product = dataObj[query.id];
+    console.log(product);
+    if(pathname==='/' || pathname === '/overview'){
+        res.writeHead(200,{
+            'Content-type':'text/html'
+        });
+     const cardHtml=dataObj.map(el =>replaceTemplate(tempCard,el)).join('');
+     console.log(cardHtml);
+        const output= tempOverview.replace('{%PRODUCT_CARD%}',cardHtml);
+        res.end(output);
+    }else if(pathname==='/product'){
+        res.writeHead(200,{
+            'Content-type':'text/html'
+        });  
+        const product=dataObj[query.id];
+        const output= replaceTemplate(tempProduct,product);
+        res.end(output);
+    }
+    else if(pathname==='/api'){
+        res.writeHeade(200,{
+            'Content-type':'application/json'
+        });
+        res.end(data);
+    }
+    else{
+        res.writeHead(404,{
+            'Content-type':'text/html',
+            'my-own-header':'hello-world'
+        });
+        res.end('<h1>Page not found! <h1>');
     }
 });
-server.listen(8000,'127.0.0.1');
+server.listen(8000, '127.0.0.1', () => {
+  console.log('Server running');
+});
